@@ -56,13 +56,29 @@ try:
         for i in range(len(bounding_boxes)):
             print(f"[Debug] Detected: Class={class_objects[i]}, Confidence={confidence_probs[i]:.2f}")
             # TODO: change the class number to the class number of traffic light in obj.names file
-            if class_objects[i] == 0:
-                # TODO: detect the color of the traffic light (red) by merging task 1
-                # step 1: crop the bounding box area from the frame
-                # step 2: convert the cropped area to HSV color space
-                # step 3: create a mask for red color
-                # step 4: check if there are enough contour areas in the mask to confirm the traffic light is red
-                # step 5: print a message if the traffic light is red (e.g., "Red light detected!")
+            if class_objects[i] == 3:
+                # Step 1: crop bounding box
+                x, y, w, h = bounding_boxes[i]
+                cropped = frame[y:y+h, x:x+w]
+
+                if cropped.size == 0:
+                    continue
+        
+                # Step 2: convert to HSV
+                hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)
+        
+                # Step 3: create red mask (single range 0–10)
+                lower_red = np.array([0, 120, 40])
+                upper_red = np.array([10, 255, 255])
+                red_mask = cv2.inRange(hsv, lower_red, upper_red)
+        
+                # Step 4: check contour area
+                contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+                for cnt in contours:
+                    if cv2.contourArea(cnt) > 50:
+                        print("Red light detected!")
+                        break
                 pass
         
 
